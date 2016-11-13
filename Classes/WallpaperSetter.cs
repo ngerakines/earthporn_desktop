@@ -1,3 +1,5 @@
+using System;
+using System.Diagnostics;
 using System.Runtime.InteropServices;
 
 namespace EpApp.Classes
@@ -7,7 +9,7 @@ namespace EpApp.Classes
         void SetWallpaper(string fileName);
     }
 
-    public class WallpaperImageSetter : IWallpaperSetter
+    public class WindowsWallpaperImageSetter : IWallpaperSetter
     {
         [DllImport("user32.dll")]
         private static extern bool SystemParametersInfo(uint uiAction, uint uiParam, string pvParam, uint fWinIni);
@@ -17,6 +19,21 @@ namespace EpApp.Classes
         public void SetWallpaper(string fileName)
         {
             SystemParametersInfo(SPI_SETDESKWALLPAPER, 0, fileName, SPIF_UPDATEINIFILE);
+        }
+    }
+
+    public class MacOSWallpaperImageSetter : IWallpaperSetter
+    {
+        public void SetWallpaper(string fileName)
+        {
+            var command = "osascript";
+            var args = $"-e \"tell application \\\"Finder\\\" to set desktop picture to POSIX file \\\"{fileName}\\\"\"";
+            Process ExternalProcess = new Process();
+            ExternalProcess.StartInfo.FileName = command;
+            ExternalProcess.StartInfo.Arguments = args;
+            ExternalProcess.StartInfo.CreateNoWindow = true;
+            ExternalProcess.Start();
+            ExternalProcess.WaitForExit();
         }
     }
 }
