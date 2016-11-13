@@ -8,11 +8,27 @@ namespace EpApp.Classes
     public interface IFileSaver
     {
         string Save(string source, string extension = "jpeg");
-        void SaveTo(string source, string destination);
     }
 
     public class FileDownloader : IFileSaver
     {
+        public string Save(string source, string extension = "jpeg")
+        {
+            if (string.IsNullOrEmpty(source))
+                throw new ArgumentNullException(nameof(source));
+            if (string.IsNullOrEmpty(extension))
+                throw new ArgumentNullException(nameof(extension));
+
+            source = SanitizeSource(source, extension);
+
+            //Create a temporary file.
+            string temp = Path.GetTempFileName();
+            temp = Path.ChangeExtension(temp, extension);
+
+            DownloadFileAsync(source, temp).Wait();
+
+            return temp;
+        }
         private string SanitizeSource(string source, string extension) 
         {
             //Get rid of the http and www
@@ -29,34 +45,6 @@ namespace EpApp.Classes
             source = source.Replace("&amp;", "&");
 
             return source;
-        }
-
-        public string Save(string source, string extension = "jpeg")
-        {
-            if (string.IsNullOrEmpty(source))
-                throw new ArgumentNullException(nameof(source));
-            if (string.IsNullOrEmpty(extension))
-                throw new ArgumentNullException(nameof(extension));
-
-            source = SanitizeSource(source, extension);
-
-            //Create a temporary file.
-            string temp = Path.GetTempFileName();
-            temp = Path.ChangeExtension(temp, extension);
-
-            SaveTo(source, temp);
-
-            return temp;
-        }
-
-        public void SaveTo(string source, string destination)
-        {
-            if (string.IsNullOrEmpty(source))
-                throw new ArgumentNullException(nameof(source));
-            if (string.IsNullOrEmpty(destination))
-                throw new ArgumentNullException(nameof(destination));
-
-            DownloadFileAsync(source, destination).Wait();
         }
 
         private async Task DownloadFileAsync(string source, string destination)
