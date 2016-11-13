@@ -13,6 +13,24 @@ namespace EpApp.Classes
 
     public class FileDownloader : IFileSaver
     {
+        private string SanitizeSource(string source, string extension) 
+        {
+            //Get rid of the http and www
+            source = source.Replace("http://", "")
+                        .Replace("www.", "");
+
+            //imgur links need to start with i. and end with the extension
+            //to get the actual image.
+            if (source.StartsWith("imgur"))
+                source = string.Format("http://i.{0}.{1}", source, extension);
+            else
+                source = string.Format("http://", source);
+
+            source = source.Replace("&amp;", "&");
+
+            return source;
+        }
+
         public string Save(string source, string extension = "jpeg")
         {
             if (string.IsNullOrEmpty(source))
@@ -20,7 +38,7 @@ namespace EpApp.Classes
             if (string.IsNullOrEmpty(extension))
                 throw new ArgumentNullException(nameof(extension));
 
-            source = source.Replace("&amp;", "&");
+            source = SanitizeSource(source, extension);
 
             //Create a temporary file.
             string temp = Path.GetTempFileName();
